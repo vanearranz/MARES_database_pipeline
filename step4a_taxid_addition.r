@@ -32,11 +32,19 @@ get_taxinfo<-function(taxnames){
                               match=1,
                               button="Save in file"))
     col[[i]]<-as.character(paste(col[[i]]))
+  }
+  for( i in 1:length(col)){
     col[[i]]<-strsplit(col[[i]], "\n")
+  }
+  col2<-list()
+  for( i in 1:length(col)){
     col[[i]]<-lapply(col[[i]][[1]],strsplit, "\\t|\t")
   }
-  col2<-do.call("rbind",col)
-  col2<-do.call("rbind",col2);col2<-do.call("rbind",col2)
+  coldat <-list()
+  for(i in 1:length(col)){
+    coldat[[i]]<-(do.call("rbind",(do.call("rbind",col[[i]][2:length(col[[i]])]))))
+  }
+  col2<-do.call("rbind",coldat)
   col2<-as.data.frame(col2)
   col2$V2<-NULL;col2$V4<-NULL;col2$V6<-NULL
   colnames(col2)<-c("code","name", "preferred name","taxid")
@@ -72,7 +80,7 @@ parentdetails$GenusTaxid <- genus_taxids$taxid[match(parentdetails$Genus,genus_t
 parentdetails<-parentdetails[complete.cases(parentdetails),]
 write.table(parentdetails,"./notaxid_forgeneration.csv",row.names = F, col.names = F,quote = F,sep=",")
 write.table(parentdetails,"./notaxid_forgeneration.csv",row.names = F, col.names = F,quote = F,sep=",")
-parentdetails$command<-paste("perl ./taxdump_edit/taxdump_edit.pl -names names.dmp -nodes nodes.dmp -taxa ", paste0("\'",parentdetails$oldname,"\'"),
+parentdetails$command<-paste("perl ./taxdump_edit/taxdump_edit.pl -names ./taxdump/names.dmp -nodes ./taxdump/nodes.dmp -taxa ", paste0("\'",parentdetails$oldname,"\'"),
                              "-parent", parentdetails$GenusTaxid, "-rank species -division 1")
 writeLines(as.character(parentdetails$command),"../taxid_commands_addition.txt")
 write.table(taxids,"./old_taxids_step4a.csv",row.names = F, col.names = F,quote = F,sep=",")
